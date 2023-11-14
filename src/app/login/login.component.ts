@@ -1,4 +1,3 @@
-// login.component.ts
 import { Component } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
@@ -18,7 +17,7 @@ export class LoginComponent {
       if (result.success) {
        
       } else {
-        // Handle login failure
+    
         alert('Login failed. Please check your credentials.');
       }
     });

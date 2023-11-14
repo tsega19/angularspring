@@ -1,4 +1,3 @@
-// auth.reducer.ts
 import { createReducer, on } from '@ngrx/store';
 import { login, logout } from './auth.actions';
 
