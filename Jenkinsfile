@@ -1,30 +1,18 @@
-pipeline {
-    agent {
-        node {
-            label 'node18.17.1'
-        }
+node {   
+    agent any 
+    tools{
+        nodejs 'NodeJS 18.17.1'
     }
-    stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/tsega19/angularspring.git'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'npm install'
-                sh 'npm run build'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'npm run test'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                // Add deployment steps here
-            }
-        }
+    stage('Checkout'){
+        git branch: 'main', url:'https://github.com/tsega19/angularspring.git'
     }
-}
+    stage('Install node modules'){
+        sh"npm install"
+    }
+    stage('build'){
+        sh"npm run build"
+    }
+    stage('deploy'){
+        sh"pm2 restart all"
+    }
+} 
