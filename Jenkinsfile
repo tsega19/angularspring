@@ -1,14 +1,30 @@
-node {
-    stage('Checkout'){
-        git branch: 'main', url:'https://github.com/tsega19/angularspring.git'
+pipeline {
+    agent {
+        node {
+            label 'node18.17.1'
+        }
     }
-    stage('Install node modules'){
-        sh"npm install"
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/tsega19/angularspring.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'npm install'
+                sh 'npm run build'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'npm run test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                // Add deployment steps here
+            }
+        }
     }
-    stage('build'){
-        sh"npm run build"
-    }
-    stage('deploy'){
-        sh"pm2 restart all"
-    }
-} 
+}
