@@ -6,7 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "mocha",
+    "sonar": "sonar-scanner",
+    "coverage": "ng test --code-coverage",
+    "build": "webpack -p",
+    ""
   },
   "private": true,
   "dependencies": {
