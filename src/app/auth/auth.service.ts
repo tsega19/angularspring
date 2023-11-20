@@ -1,49 +1,49 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Store } from '@ngrx/store';
-import * as AuthActions from '../auth/auth.actions';
+import { BehaviorSubject, Observable, timer } from 'rxjs';
+import { tap, map, shareReplay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root',
+providedIn: 'root',
 })
 export class AuthService {
-  private loggedIn$ = new BehaviorSubject<boolean>(false);
 
-  get isLoggedIn(): Observable<boolean> {
-    return this.loggedIn$.asObservable();
+private readonly SESSION_TIMEOUT = 30;
+private loggedInSubject = new BehaviorSubject<boolean>(false);
+isLoggedIn = this.loggedInSubject.asObservable().pipe(shareReplay(1));
+
+constructor(private http: HttpClient) {
+    this.checkSessionTimeout();
   }
 
-  private readonly AUTH_TOKEN_KEY = 'auth_token';
+  login(username: string, password: string): Observable<{ success: boolean }> {
+    // Check if the provided username and password are correct
+    const isValidCredentials = username === 'user' && password === 'user';
 
-  constructor(private store: Store) {
-   
-    const storedToken = sessionStorage.getItem(this.AUTH_TOKEN_KEY);
-    if (storedToken) {
-      this.store.dispatch(AuthActions.login());
-      this.loggedIn$.next(true);
-    }
-  }
-
-  login(username: string, password: string): Observable<any> {
-    const isAuthenticated = username === 'user' && password === 'user';
-
-    return new Observable((observer) => {
-      if (isAuthenticated) {
-        sessionStorage.setItem(this.AUTH_TOKEN_KEY, 'someAuthToken');
-        this.store.dispatch(AuthActions.login());
-        this.loggedIn$.next(true);
-        observer.next({ success: true });
-      } else {
-        observer.next({ success: false, message: 'Invalid credentials' });
-      }
-
-      observer.complete();
-    });
+    return timer(500).pipe(
+      map(() => ({ success: isValidCredentials })),
+      tap((result) => {
+        if (result.success) {
+          this.loggedInSubject.next(true);
+          this.setSessionTimeout();
+        }
+      })
+    );
   }
 
   logout(): void {
-    sessionStorage.removeItem(this.AUTH_TOKEN_KEY);
-    this.store.dispatch(AuthActions.logout());
-    this.loggedIn$.next(false);
+    this.loggedInSubject.next(false);
+  }
+
+  private setSessionTimeout(): void {
+    timer(this.SESSION_TIMEOUT * 1000).pipe(tap(() => this.logout())).subscribe();
+  }
+
+  private checkSessionTimeout(): void {
+    this.isLoggedIn.subscribe((loggedIn) => {
+      if (loggedIn) {
+        this.setSessionTimeout();
+      }
+    });
   }
 }
