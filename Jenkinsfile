@@ -1,55 +1,53 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE = 'my-angular-app'
-        DOCKER_TAG = 'latest'
+    tools {
+        nodejs "NodeJS 18.17.1"
     }
-
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/tsega19/angularspring.git'
+                git branch: 'main', url: 'https://github.com/tsega19/angularspring.git'
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Install node modules') {
             steps {
                 sh 'npm install'
             }
         }
-
-        stage('Build Angular App') {
+        stage('Build') {
             steps {
-                sh 'npm run build --prod'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}")
-                }
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    def container = docker.run("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}", "-p 85:80")
-                }
+                sh 'npm run build'
             }
         }
     }
-
-    post {
-        always {
-            script {
-                def containers = sh(script: "docker ps -q --filter 'ancestor=${env.DOCKER_IMAGE}:${env.DOCKER_TAG}'", returnStdout: true).trim()
-                if (containers) {
-                    sh "docker rm -f ${containers}"
+    stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKER_IMAGE}:${env.BUILD_ID}")
                 }
+            }
+        }
+
+    stage('Run Docker Container') {
+        steps {
+            script {
+                // Stop and remove any existing container
+                sh """
+                    docker stop angular-app || true
+                    docker rm angular-app || true
+                """
+
+                // Run the new container
+                sh """
+                    docker run -d -p 80:80 --name angular-app ${DOCKER_IMAGE}:${env.BUILD_ID}
+                """
             }
         }
     }
 }
+
+
+
+
+
+
