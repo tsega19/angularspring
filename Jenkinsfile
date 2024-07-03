@@ -1,8 +1,7 @@
 pipeline {
     agent any
     tools {
-        tools {
-    nodejs "NodeJS 18.17.1"
+        nodejs "NodeJS 18.17.1"
     }
     stages {
         stage('Checkout') {
@@ -28,15 +27,12 @@ pipeline {
     }
     post {
         always {
-            // Clean up or additional actions that should always run
             echo 'Pipeline execution completed'
         }
         success {
-            // Actions to perform on successful build
             echo 'Pipeline succeeded!'
         }
         failure {
-            // Actions to perform on build failure, e.g., notifications
             mail to: 'your@email.com',
                  subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
                  body: "Something is wrong with ${env.BUILD_URL}"
