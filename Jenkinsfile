@@ -11,38 +11,28 @@ pipeline {
         }
         stage('Install node modules') {
             steps {
-                script {
-                    catchError {
-                        sh 'npm install'
-                    }
-                }
+                sh 'npm install'
             }
         }
         stage('Build') {
             steps {
-                script {
-                    catchError {
-                        sh 'npm run build'
-                    }
-                }
+                sh 'npm run build'
             }
         }
         stage('Deploy') {
             steps {
-                script {
-                    catchError {
-                        sh 'pm2 restart all'
-                    }
-                }
+                sh 'pm2 restart all'
             }
         }
     }
     post {
         always {
             // Clean up or additional actions that should always run
+            echo 'Pipeline execution completed'
         }
         success {
             // Actions to perform on successful build
+            echo 'Pipeline succeeded!'
         }
         failure {
             // Actions to perform on build failure, e.g., notifications
