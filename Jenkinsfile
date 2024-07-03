@@ -19,35 +19,28 @@ pipeline {
                 sh 'npm run build'
             }
         }
-    }
-    stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     dockerImage = docker.build("${DOCKER_IMAGE}:${env.BUILD_ID}")
                 }
             }
         }
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Stop and remove any existing container
+                    sh """
+                        docker stop angular-app || true
+                        docker rm angular-app || true
+                    """
 
-    stage('Run Docker Container') {
-        steps {
-            script {
-                // Stop and remove any existing container
-                sh """
-                    docker stop angular-app || true
-                    docker rm angular-app || true
-                """
-
-                // Run the new container
-                sh """
-                    docker run -d -p 80:80 --name angular-app ${DOCKER_IMAGE}:${env.BUILD_ID}
-                """
+                    // Run the new container
+                    sh """
+                        docker run -d -p 80:80 --name angular-app ${DOCKER_IMAGE}:${env.BUILD_ID}
+                    """
+                }
             }
         }
     }
 }
-
-
-
-
-
-
