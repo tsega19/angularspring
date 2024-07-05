@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'your-docker-image-name' // Define your Docker image name here
+        DOCKER_IMAGE = 'test-angular'
+        DOCKER_REGISTRY = 'localhost:5000'
     }
 
     tools {
@@ -31,7 +32,17 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def dockerImage = docker.build("${DOCKER_IMAGE}:${env.BUILD_ID}")
+                    def dockerImage = docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${env.BUILD_ID}")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry("http://${DOCKER_REGISTRY}") {
+                        dockerImage.push()
+                    }
                 }
             }
         }
@@ -47,7 +58,7 @@ pipeline {
 
                     // Run the new container
                     sh """
-                        docker run -d -p 80:80 --name angular-app ${DOCKER_IMAGE}:${env.BUILD_ID}
+                        docker run -d -p 80:80 --name angular-app ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${env.BUILD_ID}
                     """
                 }
             }
